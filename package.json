@@ -1,0 +1,11 @@
+{
+  "name": "liquidity-staging-monitor",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "collect": "node collector.js",
+    "dry": "node collector.js --dry-run",
+    "test": "node test_engine.js"
+  },
+  "engines": { "node": ">=20" }
+}
