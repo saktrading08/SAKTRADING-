@@ -13,6 +13,7 @@ const START = Date.UTC(2023, 0, 1) / 1000;
 const DATA_DIR = path.join(__dirname, 'data');
 const HISTORY = path.join(DATA_DIR, 'history.json');
 const SNAPSHOT = path.join(DATA_DIR, 'snapshot.json');
+const SERIES = path.join(DATA_DIR, 'series.json');   // full aligned daily history, for offline analysis
 const DRY = process.argv.includes('--dry-run');
 
 async function getJSON(url) {
@@ -95,6 +96,12 @@ async function run(feeds) {
     // one row per calendar day: replace today's row if the collector runs more than once a day
     if (prev && prev.date === entry.date) history[history.length - 1] = entry; else history.push(entry);
     fs.writeFileSync(HISTORY, JSON.stringify(history, null, 1));
+    fs.writeFileSync(SERIES, JSON.stringify({
+      updated: entry.ts,
+      columns: ['date', 'price', 'stable', 'vol', 'vol_pump.fun', 'vol_pumpswap', 'vol_raydium'],
+      rows: rows.map(r => [r.date, +r.price.toFixed(4), Math.round(r.stable), r.vol == null ? null : Math.round(r.vol),
+        r['vol_pump.fun'] == null ? null : Math.round(r['vol_pump.fun']), r.vol_pumpswap == null ? null : Math.round(r.vol_pumpswap), r.vol_raydium == null ? null : Math.round(r.vol_raydium)])
+    }));
     fs.writeFileSync(SNAPSHOT, JSON.stringify({ updated: entry.ts, current: entry, backtest: {
       episodeCount: bt.episodeCount, episodeHitRate: bt.episodeHitRate, baseRate: bt.baseRate, lift: bt.lift, medianLead: bt.medianLead
     } }, null, 1));
