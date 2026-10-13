@@ -1,142 +1,121 @@
-<title>Liquidity Staging Monitor</title>
+<title>Memecoin Regime Monitor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: desk sheet. Summary strip on top, chart full width, backtest + log in two columns below. */
+/* Layout: desk sheet. State strip on top, chart full width, evidence + log in two columns below. */
 :root {
-  --bg: #f3f4f1;        /* cool paper */
-  --panel: #ffffff;
-  --ink: #1b2129;
-  --muted: #5e6873;
-  --rule: #d9dcd6;
-  --sol: #27508f;       /* SOL price line */
-  --stable: #a8781b;    /* stablecoin supply line */
-  --vol: #b9c0b2;       /* volume bars */
-  --quiet: #8a9199;
-  --staging: #c47a0c;
-  --deploying: #1f7a5c;
-  --extended: #a63a2e;
-  --band: rgba(196,122,12,0.14);
-  --display: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
-  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --bg: #f3f4f1; --panel: #ffffff; --ink: #1b2129; --muted: #5e6873; --rule: #d9dcd6;
+  --sol: #27508f; --stable: #a8781b; --meme: #7d8b8a; --memehot: #1f7a5c;
+  --live: #1f7a5c; --warming: #c47a0c; --neutral: #8a9199; --dead: #a63a2e;
+  --band-live: rgba(31,122,92,0.16); --band-dead: rgba(166,58,46,0.14); --band-warm: rgba(196,122,12,0.12);
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif; --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #15181c; --panel: #1d2127; --ink: #e8eae6; --muted: #9aa3ad; --rule: #2f353d;
-  --sol: #7aa2e3; --stable: #d9a84a; --vol: #3c434b; --quiet: #7d858e; --staging: #e0962a; --deploying: #3fb58b; --extended: #d9655a;
-  --band: rgba(224,150,42,0.16); color-scheme: dark; } }
+  --bg: #15181c; --panel: #1d2127; --ink: #e8eae6; --muted: #9aa3ad; --rule: #2f353d; --sol: #7aa2e3; --stable: #d9a84a; --meme: #4a555a; --memehot: #3fb58b;
+  --live: #3fb58b; --warming: #e0962a; --neutral: #7d858e; --dead: #d9655a; --band-live: rgba(63,181,139,0.18); --band-dead: rgba(217,101,90,0.16); --band-warm: rgba(224,150,42,0.14); color-scheme: dark; } }
 :root[data-theme="dark"] {
-  --bg: #15181c; --panel: #1d2127; --ink: #e8eae6; --muted: #9aa3ad; --rule: #2f353d;
-  --sol: #7aa2e3; --stable: #d9a84a; --vol: #3c434b; --quiet: #7d858e; --staging: #e0962a; --deploying: #3fb58b; --extended: #d9655a;
-  --band: rgba(224,150,42,0.16); color-scheme: dark; }
+  --bg: #15181c; --panel: #1d2127; --ink: #e8eae6; --muted: #9aa3ad; --rule: #2f353d; --sol: #7aa2e3; --stable: #d9a84a; --meme: #4a555a; --memehot: #3fb58b;
+  --live: #3fb58b; --warming: #e0962a; --neutral: #7d858e; --dead: #d9655a; --band-live: rgba(63,181,139,0.18); --band-dead: rgba(217,101,90,0.16); --band-warm: rgba(224,150,42,0.14); color-scheme: dark; }
 
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45; margin: 0; }
 .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 20px 48px; display: grid; gap: 18px; }
-h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: .005em; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; }
 h1 { font-size: 26px; font-weight: 700; }
 h2 { font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .eyebrow { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-
 header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding-bottom: 14px; }
-header p { margin: 4px 0 0; color: var(--muted); max-width: 60ch; }
+header p { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
 #feedstatus { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; min-width: 0; }
-
-.state { display: grid; grid-template-columns: minmax(220px, 1.2fr) repeat(3, minmax(150px, 1fr)); gap: 0; background: var(--panel); border: 1px solid var(--rule); }
+.state { display: grid; grid-template-columns: minmax(240px, 1.3fr) repeat(3, minmax(150px, 1fr)); background: var(--panel); border: 1px solid var(--rule); }
 .state > div { padding: 16px 18px; border-left: 1px solid var(--rule); min-width: 0; }
-.state > div:first-child { border-left: 0; border-top: 4px solid var(--quiet); }
-.state[data-state="Staging"] > div:first-child { border-top-color: var(--staging); }
-.state[data-state="Deploying"] > div:first-child { border-top-color: var(--deploying); }
-.state[data-state="Extended"] > div:first-child { border-top-color: var(--extended); }
-.pill { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 3px; color: #fff; background: var(--quiet); }
-.pill.Staging { background: var(--staging); } .pill.Deploying { background: var(--deploying); } .pill.Extended { background: var(--extended); }
+.state > div:first-child { border-left: 0; border-top: 4px solid var(--neutral); }
+.state[data-state="Live"] > div:first-child { border-top-color: var(--live); }
+.state[data-state="Warming"] > div:first-child { border-top-color: var(--warming); }
+.state[data-state="Dead"] > div:first-child { border-top-color: var(--dead); }
+.pill { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 3px; color: #fff; background: var(--neutral); }
+.pill.Live { background: var(--live); } .pill.Warming { background: var(--warming); } .pill.Dead { background: var(--dead); }
 .state .big { font-family: var(--display); font-size: 30px; font-weight: 600; line-height: 1.1; margin-top: 6px; }
 .state .sub { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
-.state .gauge { height: 5px; background: var(--rule); margin-top: 10px; position: relative; }
-.state .gauge i { position: absolute; top: -3px; width: 3px; height: 11px; background: var(--ink); }
-.state .gauge b { position: absolute; top: 0; bottom: 0; background: var(--band); }
-
+.gauge { height: 6px; background: var(--rule); margin-top: 10px; position: relative; }
+.gauge i { position: absolute; top: -3px; width: 3px; height: 12px; background: var(--ink); }
+.gauge b { position: absolute; top: 0; bottom: 0; }
+.flag { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 2px 7px; border: 1px solid var(--rule); border-radius: 3px; color: var(--muted); margin-top: 8px; }
+.flag.on { border-color: var(--warming); color: var(--warming); font-weight: 600; }
 .panel { background: var(--panel); border: 1px solid var(--rule); padding: 16px 18px; min-width: 0; }
 .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
 .seg { display: inline-flex; border: 1px solid var(--rule); }
 .seg button { background: none; border: 0; border-left: 1px solid var(--rule); color: var(--muted); font-family: var(--mono); font-size: 12px; padding: 4px 10px; cursor: pointer; }
-.seg button:first-child { border-left: 0; }
-.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-.seg button:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--sol); outline-offset: 2px; }
+.seg button:first-child { border-left: 0; } .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--sol); outline-offset: 2px; }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
 .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 6px; vertical-align: middle; background: var(--c); }
 .legend .bar::before { height: 10px; }
-#chart { width: 100%; height: auto; display: block; }
-#chart text { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
-
+#chart { width: 100%; height: auto; display: block; } #chart text { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
 .two { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px 18px; margin: 8px 0 14px; }
-.stats .v { font-family: var(--mono); font-size: 20px; font-weight: 500; }
-.stats .k { font-size: 11px; color: var(--muted); }
-.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 20px; padding-top: 12px; border-top: 1px dashed var(--rule); }
-.controls label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
-.controls label span b { color: var(--ink); font-family: var(--mono); font-weight: 500; }
-.controls label span { display: flex; justify-content: space-between; }
-input[type=range] { width: 100%; accent-color: var(--sol); }
-.tablewrap { overflow-x: auto; }
+.ev { display: grid; gap: 14px; }
+.ev .row { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: start; padding-top: 12px; border-top: 1px dashed var(--rule); }
+.ev .row:first-child { border-top: 0; padding-top: 0; }
+.ev .lab { font-family: var(--mono); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.ev .lab.Live { color: var(--live); } .ev .lab.Dead { color: var(--dead); } .ev .lab.trend { color: var(--sol); } .ev .lab.flag { color: var(--warming); }
+.ev p { margin: 0; } .ev .k { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.tablewrap { overflow-x: auto; margin-top: 12px; }
 table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
 th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
 th { font-family: var(--mono); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 th:first-child, td:first-child { text-align: left; }
-td.hit { color: var(--deploying); font-weight: 600; } td.miss { color: var(--muted); }
+td.good { color: var(--live); font-weight: 600; } td.bad { color: var(--dead); }
 .log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
 .log li { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: baseline; }
-.log .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; background: var(--quiet); vertical-align: -1px; }
-.log .dot.Staging { background: var(--staging); } .log .dot.Deploying { background: var(--deploying); } .log .dot.Extended { background: var(--extended); }
-.note { color: var(--muted); font-size: 12.5px; max-width: 72ch; }
-.err { color: var(--extended); font-family: var(--mono); font-size: 12px; }
-.events { display: grid; gap: 8px; }
-.events form { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: 6px; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; background: var(--neutral); vertical-align: -1px; }
+.dot.Live { background: var(--live); } .dot.Warming { background: var(--warming); } .dot.Dead { background: var(--dead); }
+.note { color: var(--muted); font-size: 12.5px; max-width: 72ch; } .err { color: var(--dead); font-family: var(--mono); font-size: 12px; }
+.ctx { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; font-size: 13px; }
+.ctx div span { display: block; color: var(--muted); font-size: 11.5px; }
+.events form { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: 6px; margin-bottom: 8px; }
 .events input { font: inherit; font-size: 13px; padding: 5px 7px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); min-width: 0; }
-.events button, .btn { font: inherit; font-size: 12px; padding: 5px 10px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; }
-.events ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
-.events li { display: flex; justify-content: space-between; gap: 8px; }
-.events li .x { background: none; border: 0; color: var(--muted); cursor: pointer; }
-@media (max-width: 860px) { .state { grid-template-columns: 1fr 1fr; } .state > div:nth-child(3) { border-left: 0; } .state > div { border-top: 1px solid var(--rule); } .two { grid-template-columns: 1fr; } }
-@media (max-width: 480px) { .state { grid-template-columns: 1fr; } .state > div { border-left: 0; } }
-@media (prefers-reduced-motion: no-preference) { .pill { transition: background .3s; } }
+.events button { font: inherit; font-size: 12px; padding: 5px 10px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; }
+.events ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; } .events li { display: flex; justify-content: space-between; gap: 8px; }
+.events li .x { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0 4px; }
+@media (max-width: 860px) { .state { grid-template-columns: 1fr 1fr; } .state > div:nth-child(3) { border-left: 0; } .state > div { border-top: 1px solid var(--rule); } .two { grid-template-columns: 1fr; } .ev .row { grid-template-columns: 1fr; gap: 4px; } }
+@media (max-width: 480px) { .state { grid-template-columns: 1fr; } .state > div { border-left: 0; } .ctx { grid-template-columns: 1fr; } }
 </style>
 
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow">Solana · stablecoin supply vs. SOL volatility vs. memecoin DEX volume</div>
-      <h1>Liquidity Staging Monitor</h1>
-      <p>Flags when fresh stablecoin supply is building on Solana while SOL is unusually quiet, then checks whether that setup has preceded volume spikes in the past.</p>
+      <div class="eyebrow">Solana · pump.fun + PumpSwap volume regime · SOL trend · stablecoin supply</div>
+      <h1>Memecoin Regime Monitor</h1>
+      <p>Tells you whether the memecoin market is live or dead right now, and shows what happened historically after each state. It does not pick coins or predict direction.</p>
     </div>
     <div id="feedstatus">Loading feeds…</div>
   </header>
 
   <section class="state" id="state" data-state="">
     <div>
-      <span class="eyebrow">Current state</span><br>
+      <span class="eyebrow">Regime today</span><br>
       <span class="pill" id="pill">Loading</span>
       <div class="big" id="asof">—</div>
-      <div class="sub" id="statetext">Pulling DefiLlama history into your browser. Nothing on this page is simulated; if a feed fails, its tile says so.</div>
+      <div class="sub" id="statetext">Pulling DefiLlama history into your browser. Nothing here is simulated; if a feed fails, this says so.</div>
     </div>
     <div>
-      <span class="eyebrow">Stablecoin supply, 7-day net</span>
-      <div class="big num" id="inflow">—</div>
-      <div class="sub">z-score vs. 90 days: <b class="num" id="inflowz">—</b></div>
-      <div class="gauge"><b id="g1b"></b><i id="g1"></i></div>
+      <span class="eyebrow">Memecoin volume vs 30-day pace</span>
+      <div class="big num" id="regime">—</div>
+      <div class="sub">7-day avg <b class="num" id="meme7">—</b>/day</div>
+      <div class="gauge"><b id="gdead" style="background:var(--band-dead)"></b><b id="gwarm" style="background:var(--band-warm)"></b><b id="glive" style="background:var(--band-live)"></b><i id="g1"></i></div>
     </div>
     <div>
-      <span class="eyebrow">SOL 14-day realized vol</span>
-      <div class="big num" id="rvol">—</div>
-      <div class="sub">percentile of last year: <b class="num" id="volpct">—</b></div>
-      <div class="gauge"><b id="g2b"></b><i id="g2"></i></div>
+      <span class="eyebrow">SOL trend</span>
+      <div class="big num" id="price">—</div>
+      <div class="sub" id="trendtext">—</div>
+      <span class="flag" id="extflag">30d: —</span>
     </div>
     <div>
-      <span class="eyebrow">DEX volume vs. 30-day median</span>
-      <div class="big num" id="volratio">—</div>
-      <div class="sub">yesterday: <b class="num" id="volusd">—</b></div>
-      <div class="gauge"><b id="g3b"></b><i id="g3"></i></div>
+      <span class="eyebrow">Stablecoin supply, 30-day</span>
+      <div class="big num" id="stable30">—</div>
+      <div class="sub">total <b class="num" id="stable">—</b></div>
+      <span class="flag" id="surgeflag">surge flag off</span>
     </div>
   </section>
 
@@ -144,57 +123,52 @@ td.hit { color: var(--deploying); font-weight: 600; } td.miss { color: var(--mut
     <div class="panel-head">
       <h2>History</h2>
       <div class="legend">
+        <span class="bar" style="--c: var(--meme)">Memecoin volume</span>
         <span style="--c: var(--sol)">SOL price</span>
         <span style="--c: var(--stable)">Stablecoin supply</span>
-        <span class="bar" style="--c: var(--vol)">DEX volume</span>
-        <span class="bar" style="--c: var(--band)">Staging days</span>
-        <span style="--c: var(--deploying)">Volume spike</span>
+        <span class="bar" style="--c: var(--band-live)">Live</span>
+        <span class="bar" style="--c: var(--band-warm)">Warming</span>
+        <span class="bar" style="--c: var(--band-dead)">Dead</span>
       </div>
-      <div class="seg" id="range">
-        <button data-d="90">90d</button><button data-d="180">180d</button><button data-d="365" aria-pressed="true">1y</button><button data-d="0">All</button>
-      </div>
+      <div class="seg" id="range"><button data-d="90">90d</button><button data-d="180">180d</button><button data-d="365" aria-pressed="true">1y</button><button data-d="0">All</button></div>
     </div>
-    <svg id="chart" viewBox="0 0 1200 360" role="img" aria-label="SOL price, stablecoin supply and DEX volume with staging days shaded"></svg>
+    <svg id="chart" viewBox="0 0 1200 360" role="img" aria-label="Memecoin volume, SOL price and stablecoin supply with regime shading"></svg>
   </section>
 
   <div class="two">
     <section class="panel">
-      <div class="panel-head"><h2>Does the setup predict spikes?</h2><span class="eyebrow" id="btrange"></span></div>
-      <div class="stats">
-        <div><div class="v num" id="s-ep">—</div><div class="k">staging episodes</div></div>
-        <div><div class="v num" id="s-hit">—</div><div class="k">followed by a spike</div></div>
-        <div><div class="v num" id="s-base">—</div><div class="k">base rate, any day</div></div>
-        <div><div class="v num" id="s-lift">—</div><div class="k">lift over base</div></div>
-        <div><div class="v num" id="s-lead">—</div><div class="k">median lead, days</div></div>
-        <div><div class="v num" id="s-sol">—</div><div class="k">median SOL move after</div></div>
+      <div class="panel-head"><h2>What happened after each state</h2><span class="eyebrow" id="btrange"></span></div>
+      <div class="ev">
+        <div class="row"><div class="lab Live">Live</div><div><p id="ev-live">—</p><div class="k" id="ev-live-k"></div></div></div>
+        <div class="row"><div class="lab Dead">Dead</div><div><p id="ev-dead">—</p><div class="k" id="ev-dead-k"></div></div></div>
+        <div class="row"><div class="lab trend">SOL trend</div><div><p id="ev-trend">—</p><div class="k">Memecoin volume expanding over the following two weeks</div></div></div>
+        <div class="row"><div class="lab flag">Surge flag</div><div><p>Solana stablecoin supply up more than 15% in 30 days preceded SOL drawdowns through 2024–2025 and flipped in 2026 once supply plateaued. A caution, not a trade.</p></div></div>
       </div>
-      <p class="note" id="verdict"></p>
-      <div class="controls">
-        <label><span>Inflow z-score ≥ <b id="v-z">1.0</b></span><input type="range" id="c-z" min="0.5" max="2.5" step="0.1" value="1.0"></label>
-        <label><span>Vol percentile ≤ <b id="v-p">30</b></span><input type="range" id="c-p" min="10" max="60" step="5" value="30"></label>
-        <label><span>Spike = <b id="v-m">1.75</b>× median</span><input type="range" id="c-m" min="1.25" max="3" step="0.25" value="1.75"></label>
-        <label><span>Look ahead <b id="v-h">7</b> days</span><input type="range" id="c-h" min="3" max="14" step="1" value="7"></label>
-      </div>
-      <div class="tablewrap" style="margin-top:14px">
-        <table id="episodes"><thead><tr><th>Episode start</th><th>Days</th><th>Inflow z</th><th>Vol pct</th><th>Spike?</th><th>Lead</th><th>Peak ×med</th><th>SOL after</th></tr></thead><tbody></tbody></table>
+      <div class="tablewrap">
+        <table id="episodes"><thead><tr><th>Live signal</th><th>Ratio at signal</th><th>Next week</th><th>Peak in</th><th>SOL vs 50d</th><th>SOL 30d</th><th>SOL week after</th></tr></thead><tbody></tbody></table>
       </div>
     </section>
-
     <div style="display:grid; gap:18px; align-content:start; min-width:0">
+      <section class="panel"><div class="panel-head"><h2>State changes</h2></div><ul class="log" id="log"></ul></section>
       <section class="panel">
-        <div class="panel-head"><h2>State changes</h2></div>
-        <ul class="log" id="log"></ul>
+        <div class="panel-head"><h2>Context (not alerting)</h2></div>
+        <div class="ctx">
+          <div><span>Stablecoin 7-day net</span><b class="num" id="inflow">—</b></div>
+          <div><span>vs 90-day norm</span><b class="num" id="inflowz">—</b></div>
+          <div><span>SOL 14-day realized vol</span><b class="num" id="rvol">—</b></div>
+          <div><span>percentile of last year</span><b class="num" id="volpct">—</b></div>
+        </div>
+        <p class="note" style="margin-top:10px">Tested and found not predictive of memecoin volume at any threshold. Kept visible because they describe the tape.</p>
       </section>
       <section class="panel events">
         <div class="panel-head"><h2>Scheduled catalysts</h2></div>
-        <p class="note">Your own list of dated events (FOMC, CPI, auctions, unlocks). Saved in this browser only.</p>
-        <form id="evform"><input type="date" id="evdate" required aria-label="Date"><input type="text" id="evname" placeholder="Event" required aria-label="Event"><button type="submit">Add</button></form>
+        <form id="evform"><input type="date" id="evdate" required aria-label="Date"><input type="text" id="evname" placeholder="Event (FOMC, CPI, unlock…)" required aria-label="Event"><button type="submit">Add</button></form>
         <ul id="evlist"></ul>
       </section>
       <section class="panel">
         <div class="panel-head"><h2>How to read it</h2></div>
-        <p class="note"><b>Staging</b> = 7-day net stablecoin growth at least one standard deviation above its 90-day norm while SOL's 14-day realized vol sits in the bottom third of its last year, for two days running. <b>Deploying</b> = combined pump.fun, PumpSwap and Raydium volume above 1.75× its 30-day median. <b>Extended</b> = vol in the top 30% with no fresh inflow. Everything else is <b>Quiet</b>.</p>
-        <p class="note">Sources: DefiLlama stablecoin and DEX volume APIs, DefiLlama price API (CoinGecko-backed). Raydium carries non-meme volume too; pump.fun data starts April 2024, PumpSwap March 2025.</p>
+        <p class="note"><b>Live</b>: 7-day pump.fun + PumpSwap volume at or above 1.5× the prior 30-day average. <b>Warming</b>: 1.3× to 1.5×. <b>Dead</b>: at or below 0.7×. <b>Neutral</b>: in between. The SOL trend is a filter: regimes have run far more often with SOL above its 50-day average and not already up 30%+ in a month.</p>
+        <p class="note">Sources: DefiLlama DEX volume, stablecoin and price APIs (CoinGecko-backed). Memecoin volume data starts April 2024 (pump.fun) and March 2025 (PumpSwap).</p>
       </section>
     </div>
   </div>
@@ -203,184 +177,123 @@ td.hit { color: var(--deploying); font-weight: 600; } td.miss { color: var(--mut
 <script src="engine.js"></script>
 <script>
 (function () {
-  const E = window.LiqEngine, DAY = E.DAY;
-  const $ = id => document.getElementById(id);
-  const fmtUSD = v => (Math.abs(v) >= 1e9 ? (v / 1e9).toFixed(2) + 'B' : (v / 1e6).toFixed(0) + 'M');
+  const E = window.LiqEngine, DAY = E.DAY, $ = id => document.getElementById(id);
+  const fmtUSD = v => Math.abs(v) >= 1e9 ? (v / 1e9).toFixed(2) + 'B' : (v / 1e6).toFixed(0) + 'M';
   const fmtDate = t => new Date(t * 1000).toISOString().slice(0, 10);
+  const pct = (v, d = 1) => v == null ? '—' : (v >= 0 ? '+' : '') + (v * 100).toFixed(d) + '%';
   const START = Date.UTC(2023, 0, 1) / 1000, BT_START = Date.UTC(2024, 0, 1) / 1000;
-
   let rows = null, cfg = Object.assign({}, E.DEFAULTS), rangeDays = 365, feedNotes = [];
 
   async function getJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error(r.status + ' ' + url); return r.json(); }
-
   async function loadPrices() {
-    const out = []; const now = Math.floor(Date.now() / 1000);
-    for (let s = START; s < now; s += 365 * DAY) {
-      const span = Math.min(365, Math.ceil((now - s) / DAY) + 1);
-      const j = await getJSON(`https://coins.llama.fi/chart/coingecko:solana?start=${s}&span=${span}&period=1d`);
-      out.push(...(j.coins['coingecko:solana'].prices || []));
-    }
+    const out = [], now = Math.floor(Date.now() / 1000);
+    for (let s = START; s < now; s += 365 * DAY) { const span = Math.min(365, Math.ceil((now - s) / DAY) + 1); const j = await getJSON(`https://coins.llama.fi/chart/coingecko:solana?start=${s}&span=${span}&period=1d`); out.push(...(j.coins['coingecko:solana'].prices || [])); }
     return out;
   }
-  async function loadVol(slug) {
-    const j = await getJSON(`https://api.llama.fi/summary/dexs/${slug}?dataType=dailyVolume`);
-    return j.totalDataChart || [];
-  }
+  const loadVol = async slug => (await getJSON(`https://api.llama.fi/summary/dexs/${slug}?dataType=dailyVolume`)).totalDataChart || [];
 
   async function load() {
-    const results = await Promise.allSettled([
-      getJSON('https://stablecoins.llama.fi/stablecoincharts/Solana'),
-      loadPrices(),
-      loadVol('pump.fun'), loadVol('pumpswap'), loadVol('raydium')
-    ]);
-    const [st, pr, pf, ps, ray] = results;
-    if (st.status !== 'fulfilled' || pr.status !== 'fulfilled') {
-      $('feedstatus').innerHTML = '<span class="err">Could not load ' + (st.status !== 'fulfilled' ? 'stablecoin supply' : 'SOL price') + ' feed. Reload to retry.</span>';
-      $('pill').textContent = 'No data'; return;
+    const [st, pr, pf, ps, ray] = await Promise.allSettled([getJSON('https://stablecoins.llama.fi/stablecoincharts/Solana'), loadPrices(), loadVol('pump.fun'), loadVol('pumpswap'), loadVol('raydium')]);
+    if (st.status !== 'fulfilled' || pr.status !== 'fulfilled' || pf.status !== 'fulfilled') {
+      const which = st.status !== 'fulfilled' ? 'stablecoin supply' : pr.status !== 'fulfilled' ? 'SOL price' : 'pump.fun volume';
+      $('feedstatus').innerHTML = '<span class="err">Could not load the ' + which + ' feed. Reload to retry.</span>'; $('pill').textContent = 'No data'; return;
     }
-    const vols = {};
-    [['pump.fun', pf], ['pumpswap', ps], ['raydium', ray]].forEach(([n, r]) => { if (r.status === 'fulfilled') vols[n] = r.value; else feedNotes.push(n + ' volume unavailable'); });
+    const vols = { 'pump.fun': pf.value };
+    [['pumpswap', ps], ['raydium', ray]].forEach(([n, r]) => { if (r.status === 'fulfilled') vols[n] = r.value; else feedNotes.push(n + ' unavailable'); });
     rows = E.alignDaily({ stable: st.value, prices: pr.value, vols, start: START });
-    const last = rows[rows.length - 1];
-    $('feedstatus').textContent = `Feeds live · ${rows.length} days · through ${fmtDate(last.date)}` + (feedNotes.length ? ' · ' + feedNotes.join(', ') : '');
+    $('feedstatus').textContent = `Feeds live · through ${fmtDate(rows[rows.length - 1].date)}` + (feedNotes.length ? ' · ' + feedNotes.join(', ') : '');
     render();
   }
 
   function render() {
     if (!rows) return;
-    const ind = E.computeIndicators(rows, cfg);
-    const log = E.stateTransitions(ind, cfg);
-    const btInd = ind.filter(o => o.date >= BT_START);
-    const bt = E.backtest(btInd, cfg);
-    const cur = E.latest(ind);
+    const ind = E.computeIndicators(rows, cfg), log = E.stateTransitions(ind), cur = E.latest(ind);
+    const bt = E.backtest(ind.filter(o => o.date >= BT_START), cfg);
 
-    // --- state strip ---
-    $('state').dataset.state = cur.state;
-    $('pill').className = 'pill ' + cur.state; $('pill').textContent = cur.state;
-    $('asof').textContent = fmtDate(cur.date);
-    const streakTxt = cur.staging ? ` Staging conditions have held ${cur.streak} day${cur.streak > 1 ? 's' : ''}.` : '';
-    const text = {
-      Staging: 'Fresh stablecoin supply is building while SOL is quiet. Powder is being staged.' + streakTxt,
-      Deploying: 'DEX volume is spiking. Whatever was staged is moving now.',
-      Extended: 'SOL is volatile and no fresh inflow is arriving. Late in the move.',
-      Quiet: 'No unusual inflow and no compression. Nothing to position for yet.' + (cur.staging ? ` (Conditions met today, ${cfg.minDays} days required.)` : ''),
-      'Warming up': 'Not enough history yet to score.'
+    $('state').dataset.state = cur.state; $('pill').className = 'pill ' + cur.state; $('pill').textContent = cur.state; $('asof').textContent = fmtDate(cur.date);
+    const trendOK = cur.aboveMA && !(cur.ret30 >= cfg.parabolic);
+    $('statetext').textContent = {
+      Live: 'Memecoin volume is running hot and has historically kept running. ' + (trendOK ? 'SOL trend supports it.' : cur.aboveMA ? 'SOL is extended; the one failed Live signal looked like this.' : 'SOL is below its 50-day; regimes have run less reliably here.'),
+      Warming: 'Volume is building toward a Live signal. ' + (trendOK ? 'SOL trend is favorable.' : 'SOL trend is not yet supportive.'),
+      Neutral: 'Nothing unusual either way. ' + (trendOK ? 'SOL trend is supportive if volume turns.' : 'SOL trend is unsupportive.'),
+      Dead: 'Memecoin volume has collapsed. Historically no Dead day was followed by an expansion the next week.',
+      'Warming up': 'Not enough memecoin volume history to score yet.'
     }[cur.state];
-    $('statetext').textContent = text;
-    $('inflow').textContent = (cur.inflow7 >= 0 ? '+$' : '−$') + fmtUSD(Math.abs(cur.inflow7));
-    $('inflowz').textContent = cur.inflowZ == null ? '—' : cur.inflowZ.toFixed(2);
-    $('rvol').textContent = cur.rvol == null ? '—' : (cur.rvol * 100).toFixed(0) + '%';
-    $('volpct').textContent = cur.volPct == null ? '—' : 'p' + cur.volPct.toFixed(0);
-    $('volratio').textContent = cur.volRatio == null ? '—' : cur.volRatio.toFixed(2) + '×';
-    $('volusd').textContent = cur.vol == null ? 'no volume data' : '$' + fmtUSD(cur.vol);
-    gauge('g1', cur.inflowZ == null ? null : (cur.inflowZ + 3) / 6, (cfg.zThresh + 3) / 6, 1);
-    gauge('g2', cur.volPct == null ? null : cur.volPct / 100, 0, cfg.volPctThresh / 100);
-    gauge('g3', cur.volRatio == null ? null : Math.min(1, cur.volRatio / 3), cfg.spikeMult / 3, 1);
+    $('regime').textContent = cur.regime == null ? '—' : cur.regime.toFixed(2) + '×';
+    $('meme7').textContent = cur.meme7 == null ? '—' : '$' + fmtUSD(cur.meme7);
+    const gx = v => Math.max(0, Math.min(1, v / 3)) * 100;
+    $('gdead').style.left = '0'; $('gdead').style.width = gx(cfg.dead) + '%';
+    $('gwarm').style.left = gx(cfg.warm) + '%'; $('gwarm').style.width = (gx(cfg.hot) - gx(cfg.warm)) + '%';
+    $('glive').style.left = gx(cfg.hot) + '%'; $('glive').style.width = (100 - gx(cfg.hot)) + '%';
+    $('g1').hidden = cur.regime == null; if (cur.regime != null) $('g1').style.left = gx(cur.regime) + '%';
+    $('price').textContent = '$' + cur.price.toFixed(2);
+    $('trendtext').textContent = cur.aboveMA == null ? '—' : (cur.aboveMA ? 'above' : 'below') + ' 50-day avg ($' + cur.ma.toFixed(0) + ') · week ' + pct(cur.ret7);
+    $('extflag').textContent = '30d ' + pct(cur.ret30) + (cur.ret30 >= cfg.parabolic ? ' · extended' : ''); $('extflag').className = 'flag' + (cur.ret30 >= cfg.parabolic ? ' on' : '');
+    $('stable30').textContent = pct(cur.stable30); $('stable').textContent = '$' + fmtUSD(cur.stable);
+    $('surgeflag').textContent = cur.surge ? 'surge flag on' : 'surge flag off'; $('surgeflag').className = 'flag' + (cur.surge ? ' on' : '');
+    $('inflow').textContent = (cur.inflow7 >= 0 ? '+$' : '−$') + fmtUSD(Math.abs(cur.inflow7)); $('inflowz').textContent = cur.inflowZ == null ? '—' : cur.inflowZ.toFixed(2) + 'σ';
+    $('rvol').textContent = cur.rvol == null ? '—' : (cur.rvol * 100).toFixed(0) + '%'; $('volpct').textContent = cur.volPct == null ? '—' : 'p' + cur.volPct.toFixed(0);
 
-    // --- backtest ---
-    const pct = v => v == null ? '—' : (v * 100).toFixed(0) + '%';
-    $('btrange').textContent = `${fmtDate(BT_START)} → ${fmtDate(cur.date)}`;
-    $('s-ep').textContent = bt.episodeCount;
-    $('s-hit').textContent = pct(bt.episodeHitRate);
-    $('s-base').textContent = pct(bt.baseRate);
-    $('s-lift').textContent = bt.lift == null ? '—' : bt.lift.toFixed(1) + '×';
-    $('s-lead').textContent = bt.medianLead == null ? '—' : bt.medianLead;
-    $('s-sol').textContent = bt.medianSolFwd == null ? '—' : (bt.medianSolFwd >= 0 ? '+' : '') + (bt.medianSolFwd * 100).toFixed(1) + '%';
-    let verdict;
-    if (bt.episodeCount < 4) verdict = `Only ${bt.episodeCount} episode${bt.episodeCount === 1 ? '' : 's'} at these thresholds. Too few to trust; loosen the sliders or wait for more history.`;
-    else if (bt.lift != null && bt.lift >= 1.5 && bt.episodeHitRate >= 0.5) verdict = `Staging days were ${bt.lift.toFixed(1)}× more likely than a random day to be followed by a volume spike within ${cfg.horizon} days. Over ${bt.episodeCount} episodes that is a usable edge, not a guarantee.`;
-    else if (bt.lift != null && bt.lift >= 1.2) verdict = `Mild edge: ${bt.lift.toFixed(1)}× the base rate. Worth watching, not worth acting on alone.`;
-    else verdict = `No edge at these thresholds. Staging days were not more likely than any other day to precede a spike.`;
-    $('verdict').textContent = verdict;
+    $('btrange').textContent = `since ${fmtDate(Math.max(BT_START, ind.find(o => o.regime != null)?.date || BT_START))}`;
+    const L = bt.live, D = bt.dead, B = bt.base, T = bt.trend;
+    $('ev-live').textContent = L.episodes.length ? `${L.episodes.length} signals. The week after a Live day, volume ran a median ${L.nextMedian.toFixed(1)}× the prior 30-day pace (any day: ${B.nextMedian.toFixed(1)}×) and stayed at or above ${cfg.hot}× ${(L.pStay * 100).toFixed(0)}% of the time (any day: ${(B.pHot * 100).toFixed(0)}%).` : 'No Live signals at this threshold yet.';
+    $('ev-live-k').textContent = L.episodes.length ? `Peak 7-day volume came a median ${L.medianPeakLag} days after the signal.` : '';
+    $('ev-dead').textContent = D.days ? `${D.days} days. ${(D.pExpand * 100).toFixed(0)}% were followed by volume expanding above ${cfg.warm}× the next week (any day: ${(B.pExpand * 100).toFixed(0)}%).` : 'No Dead days at this threshold.';
+    $('ev-dead-k').textContent = D.days ? 'The stay-out signal.' : '';
+    $('ev-trend').textContent = `SOL above its 50-day: ${(T.above * 100).toFixed(0)}% of days (n=${T.aboveN}). Below: ${(T.below * 100).toFixed(0)}% (n=${T.belowN}).`;
     const tb = $('episodes').querySelector('tbody'); tb.innerHTML = '';
-    bt.episodes.slice().reverse().forEach(e => {
+    L.episodes.slice().reverse().forEach(e => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="num">${fmtDate(e.start)}</td><td class="num">${e.days}</td><td class="num">${e.inflowZ.toFixed(2)}</td><td class="num">p${e.volPct.toFixed(0)}</td>` +
-        `<td class="${e.hit ? 'hit' : 'miss'}">${e.hit ? 'yes' : 'no'}</td><td class="num">${e.leadDays == null ? '—' : e.leadDays + 'd'}</td><td class="num">${e.peakRatio.toFixed(2)}</td><td class="num">${(e.solFwd >= 0 ? '+' : '') + (e.solFwd * 100).toFixed(1)}%</td>`;
+      tr.innerHTML = `<td class="num">${fmtDate(e.date)}</td><td class="num">${e.regime.toFixed(2)}×</td><td class="num ${e.next >= cfg.hot ? 'good' : 'bad'}">${e.next.toFixed(2)}×</td><td class="num">${e.peakLag}d</td><td>${e.aboveMA ? 'above' : 'below'}</td><td class="num">${pct(e.ret30, 0)}</td><td class="num">${pct(e.sol7)}</td>`;
       tb.appendChild(tr);
     });
-
-    // --- log ---
     const ul = $('log'); ul.innerHTML = '';
-    log.filter(l => l.date >= BT_START).slice(-14).reverse().forEach(l => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span class="num">${fmtDate(l.date)}</span><span><i class="dot ${l.state}"></i>${l.state}${l.from ? ' <span style="color:var(--muted)">from ' + l.from + '</span>' : ''}</span>`;
-      ul.appendChild(li);
+    log.filter(l => l.date >= BT_START && l.state !== 'Warming up').slice(-14).reverse().forEach(l => {
+      const li = document.createElement('li'); li.innerHTML = `<span class="num">${fmtDate(l.date)}</span><span><i class="dot ${l.state}"></i>${l.state}${l.from && l.from !== 'Warming up' ? ' <span style="color:var(--muted)">from ' + l.from + '</span>' : ''}</span>`; ul.appendChild(li);
     });
-
     drawChart(ind);
   }
 
-  function gauge(id, pos, bandFrom, bandTo) {
-    const i = $(id), b = $(id + 'b');
-    if (pos == null) { i.hidden = true; b.hidden = true; return; }
-    i.hidden = false; b.hidden = false;
-    i.style.left = (Math.max(0, Math.min(1, pos)) * 100) + '%';
-    b.style.left = (bandFrom * 100) + '%'; b.style.width = ((bandTo - bandFrom) * 100) + '%';
-  }
-
   function drawChart(indAll) {
-    const ind = rangeDays ? indAll.slice(-rangeDays) : indAll.filter(o => o.date >= BT_START);
-    const W = 1200, H = 360, L = 54, R = 70, T = 14, B = 28, VH = 70;
-    const n = ind.length, x = i => L + (W - L - R) * i / Math.max(1, n - 1);
-    const prices = ind.map(o => o.price), stables = ind.map(o => o.stable), vols = ind.map(o => o.vol || 0);
+    const base = indAll.filter(o => o.meme != null);
+    const ind = rangeDays ? base.slice(-rangeDays) : base;
+    const W = 1200, H = 360, Lm = 54, R = 70, T = 14, Bm = 28, VH = 120;
+    const n = ind.length; if (!n) return;
+    const x = i => Lm + (W - Lm - R) * i / Math.max(1, n - 1);
+    const prices = ind.map(o => o.price), stables = ind.map(o => o.stable), vols = ind.map(o => o.meme || 0);
     const pmin = Math.min(...prices), pmax = Math.max(...prices), smin = Math.min(...stables), smax = Math.max(...stables), vmax = Math.max(...vols, 1);
-    const ph = H - T - B - VH;
-    const yp = v => T + ph - (v - pmin) / ((pmax - pmin) || 1) * ph;
-    const ys = v => T + ph - (v - smin) / ((smax - smin) || 1) * ph;
-    const yv = v => H - B - v / vmax * VH;
+    const ph = H - T - Bm - VH;
+    const yp = v => T + ph - (v - pmin) / ((pmax - pmin) || 1) * ph, ys = v => T + ph - (v - smin) / ((smax - smin) || 1) * ph, yv = v => H - Bm - v / vmax * VH;
     let s = '';
-    // staging bands
-    for (let i = 0; i < n; i++) if (ind[i].state === 'Staging') s += `<rect x="${x(i) - (W - L - R) / n / 2}" y="${T}" width="${(W - L - R) / n + 0.5}" height="${H - T - B}" fill="var(--band)"/>`;
-    // grid + left axis (price)
-    for (let k = 0; k <= 4; k++) { const v = pmin + (pmax - pmin) * k / 4; s += `<line x1="${L}" x2="${W - R}" y1="${yp(v)}" y2="${yp(v)}" stroke="var(--rule)" stroke-dasharray="2 4"/><text x="${L - 6}" y="${yp(v) + 3}" text-anchor="end">$${v.toFixed(0)}</text>`; }
+    const cw = (W - Lm - R) / n;
+    for (let i = 0; i < n; i++) { const st = ind[i].state; const c = st === 'Live' ? 'var(--band-live)' : st === 'Dead' ? 'var(--band-dead)' : st === 'Warming' ? 'var(--band-warm)' : null; if (c) s += `<rect x="${x(i) - cw / 2}" y="${T}" width="${cw + 0.5}" height="${H - T - Bm}" fill="${c}"/>`; }
+    for (let k = 0; k <= 4; k++) { const v = pmin + (pmax - pmin) * k / 4; s += `<line x1="${Lm}" x2="${W - R}" y1="${yp(v)}" y2="${yp(v)}" stroke="var(--rule)" stroke-dasharray="2 4"/><text x="${Lm - 6}" y="${yp(v) + 3}" text-anchor="end">$${v.toFixed(0)}</text>`; }
     for (let k = 0; k <= 4; k += 2) { const v = smin + (smax - smin) * k / 4; s += `<text x="${W - R + 6}" y="${ys(v) + 3}">$${fmtUSD(v)}</text>`; }
-    // volume bars
-    const bw = Math.max(1, (W - L - R) / n - 0.6);
-    for (let i = 0; i < n; i++) if (ind[i].vol) s += `<rect x="${x(i) - bw / 2}" y="${yv(vols[i])}" width="${bw}" height="${H - B - yv(vols[i])}" fill="${ind[i].spike ? 'var(--deploying)' : 'var(--vol)'}"/>`;
-    // lines
+    s += `<text x="${Lm - 6}" y="${yv(vmax) + 3}" text-anchor="end">$${fmtUSD(vmax)}</text>`;
+    const bw = Math.max(1, cw - 0.6);
+    for (let i = 0; i < n; i++) if (vols[i]) s += `<rect x="${x(i) - bw / 2}" y="${yv(vols[i])}" width="${bw}" height="${H - Bm - yv(vols[i])}" fill="${ind[i].state === 'Live' ? 'var(--memehot)' : 'var(--meme)'}"/>`;
     const path = (arr, y) => arr.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join('');
-    s += `<path d="${path(stables, ys)}" fill="none" stroke="var(--stable)" stroke-width="1.6"/>`;
-    s += `<path d="${path(prices, yp)}" fill="none" stroke="var(--sol)" stroke-width="1.8"/>`;
-    s += `<circle cx="${x(n - 1)}" cy="${yp(prices[n - 1])}" r="3.5" fill="var(--sol)"/>`;
-    // x labels
+    s += `<path d="${path(stables, ys)}" fill="none" stroke="var(--stable)" stroke-width="1.6"/><path d="${path(prices, yp)}" fill="none" stroke="var(--sol)" stroke-width="1.8"/><circle cx="${x(n - 1)}" cy="${yp(prices[n - 1])}" r="3.5" fill="var(--sol)"/>`;
     const ticks = Math.min(8, n); for (let k = 0; k < ticks; k++) { const i = Math.round(k * (n - 1) / (ticks - 1 || 1)); s += `<text x="${x(i)}" y="${H - 8}" text-anchor="${k === 0 ? 'start' : k === ticks - 1 ? 'end' : 'middle'}">${fmtDate(ind[i].date).slice(0, 7)}</text>`; }
     $('chart').innerHTML = s;
   }
 
-  // controls
-  [['c-z', 'zThresh', 'v-z', 1], ['c-p', 'volPctThresh', 'v-p', 0], ['c-m', 'spikeMult', 'v-m', 2], ['c-h', 'horizon', 'v-h', 0]].forEach(([id, key, lab, dp]) => {
-    $(id).addEventListener('input', e => { cfg[key] = parseFloat(e.target.value); $(lab).textContent = cfg[key].toFixed(dp); render(); });
-  });
-  $('range').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    $('range').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
-    rangeDays = parseInt(b.dataset.d, 10); if (rows) render();
-  });
+  $('range').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $('range').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); rangeDays = parseInt(b.dataset.d, 10); if (rows) render(); });
 
-  // events (per-browser)
   let events = []; try { events = JSON.parse(localStorage.getItem('liq-events') || '[]'); } catch (e) {}
   function saveEv() { try { localStorage.setItem('liq-events', JSON.stringify(events)); } catch (e) {} renderEv(); }
   function renderEv() {
-    const ul = $('evlist'); ul.innerHTML = '';
-    const today = Math.floor(Date.now() / 1000 / DAY) * DAY;
+    const ul = $('evlist'); ul.innerHTML = ''; const today = Math.floor(Date.now() / 1000 / DAY) * DAY;
     events.sort((a, b) => a.d.localeCompare(b.d)).forEach((ev, i) => {
-      const t = Date.UTC(+ev.d.slice(0, 4), +ev.d.slice(5, 7) - 1, +ev.d.slice(8, 10)) / 1000;
-      const dd = Math.round((t - today) / DAY);
-      const li = document.createElement('li');
-      li.innerHTML = `<span><span class="num">${ev.d}</span> ${ev.n}</span><span><span class="num" style="color:var(--muted)">${dd < 0 ? 'past' : dd === 0 ? 'today' : 'in ' + dd + 'd'}</span> <button class="x" aria-label="Remove">×</button></span>`;
-      li.querySelector('.x').addEventListener('click', () => { events.splice(i, 1); saveEv(); });
-      ul.appendChild(li);
+      const t = Date.UTC(+ev.d.slice(0, 4), +ev.d.slice(5, 7) - 1, +ev.d.slice(8, 10)) / 1000, dd = Math.round((t - today) / DAY);
+      const li = document.createElement('li'); li.innerHTML = `<span><span class="num">${ev.d}</span> ${ev.n.replace(/</g, '&lt;')}</span><span><span class="num" style="color:var(--muted)">${dd < 0 ? 'past' : dd === 0 ? 'today' : 'in ' + dd + 'd'}</span> <button class="x" aria-label="Remove">×</button></span>`;
+      li.querySelector('.x').addEventListener('click', () => { events.splice(i, 1); saveEv(); }); ul.appendChild(li);
     });
-    if (!events.length) ul.innerHTML = '<li class="note">No events yet.</li>';
+    if (!events.length) ul.innerHTML = '<li class="note">No events yet. Saved in this browser only.</li>';
   }
   $('evform').addEventListener('submit', e => { e.preventDefault(); events.push({ d: $('evdate').value, n: $('evname').value.trim() }); $('evname').value = ''; saveEv(); });
   renderEv();
 
-  load().catch(err => {
-    const blocked = err instanceof TypeError;
-    $('feedstatus').innerHTML = '<span class="err">' + (blocked ? 'This copy cannot reach DefiLlama from here. Open the page from your GitHub Pages site or the downloaded file.' : 'Load failed: ' + err.message) + '</span>';
-    $('pill').textContent = 'No data';
-  });
+  load().catch(err => { $('feedstatus').innerHTML = '<span class="err">' + (err instanceof TypeError ? 'This copy cannot reach DefiLlama from here. Open it from your GitHub Pages site.' : 'Load failed: ' + err.message) + '</span>'; $('pill').textContent = 'No data'; });
 })();
 </script>

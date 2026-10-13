@@ -1,6 +1,8 @@
-# Liquidity Staging Monitor
+# Memecoin Regime Monitor
 
-Watches Solana for the setup where fresh stablecoin supply is building while SOL is unusually quiet, scores it against history, and messages you on Telegram only when the state changes.
+Tells you whether the Solana memecoin market is live or dead, scores each state against history, and messages you on Telegram only when the state changes.
+
+**Why this and not stablecoin inflows:** the original "stablecoins arriving + SOL quiet" thesis was backtested on Jan 2024–Oct 2026 data and showed no edge at any threshold (and heavy 30-day stablecoin surges actually preceded SOL drawdowns in 2024–25). What did hold: memecoin volume regimes persist once they start, and die hard once they stop. See `index.html` for the live evidence panel.
 
 **What's in here**
 
@@ -10,14 +12,16 @@ Watches Solana for the setup where fresh stablecoin supply is building while SOL
 | `collector.js` | Hourly job. Pulls feeds, scores, appends `data/history.json`, sends Telegram on a state change. |
 | `index.html` | Dashboard. Pulls the same feeds in your browser, shows current state, the backtest with adjustable thresholds, and the state-change log. |
 | `.github/workflows/monitor.yml` | Runs the collector every hour on GitHub's servers. Free. |
-| `test_engine.js` | Synthetic-data test proving the engine catches planted setups and ignores noise. |
+| `test_engine.js` | Re-runs the evidence against `data/series.json` (real history) or synthetic data. |
 
-**States**
+**States** (regime = 7-day avg pump.fun + PumpSwap volume ÷ prior 30-day avg)
 
-- **Quiet** – nothing unusual.
-- **Staging** – 7-day net stablecoin growth ≥ 1σ above its 90-day norm *and* SOL 14-day realized vol in the bottom 30% of the last year, for 2+ consecutive days. This is the alert that matters.
-- **Deploying** – combined pump.fun + PumpSwap + Raydium daily volume ≥ 1.75× its 30-day median. The staged money is moving.
-- **Extended** – vol in the top 30% with no fresh inflow. Late.
+- **Live** – regime ≥ 1.5×. Historically the next week ran a median 2.1× and held above 1.5× 85% of the time; peak volume came ~19 days later.
+- **Warming** – 1.3× to 1.5×. Early warning.
+- **Neutral** – in between.
+- **Dead** – regime ≤ 0.7×. Zero historical Dead days were followed by an expansion the next week. The stay-out signal.
+
+Filters shown alongside: SOL above/below its 50-day average (regimes ran far more often above), SOL 30-day return (≥ 30% = extended), and a stablecoin-surge caution flag (30-day supply growth ≥ 15%).
 
 Data: DefiLlama stablecoin, DEX-volume and price APIs. No keys needed.
 
@@ -29,15 +33,15 @@ Data: DefiLlama stablecoin, DEX-volume and price APIs. No keys needed.
 
 3. **Secrets.** Repo → Settings → Secrets and variables → Actions → New repository secret: `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
 
-4. **Turn on the schedule.** Repo → Actions → enable workflows if prompted → "Liquidity staging monitor" → Run workflow. The first run records the baseline state and sends a message only if it's already Staging. After that you hear from it only on a change.
+4. **Turn on the schedule.** Repo → Actions → enable workflows if prompted → "Liquidity staging monitor" → Run workflow. The first run records the baseline state and sends a message only if it is already Live or Dead. After that you hear from it only on a change.
 
 5. **Dashboard.** Repo → Settings → Pages → Source: Deploy from branch, branch `main`, folder `/ (root)`. Your dashboard will be at `https://<you>.github.io/<repo>/`. (Opening `index.html` straight from disk also works.)
 
 ## Tuning
 
-The dashboard sliders re-run the backtest live. Start conservative; if the backtest at some setting shows a lift under ~1.5× or fewer than 4 episodes, don't trust it. To change what the collector alerts on, edit `DEFAULTS` in `engine.js` so the dashboard and the alerts stay in step.
+Thresholds live in `DEFAULTS` in `engine.js` (hot 1.5, warm 1.3, dead 0.7). Edit there so the dashboard and the alerts stay in step. `node test_engine.js` re-runs the evidence against `data/series.json`.
 
 ## What it does not do
 
-- It does not predict direction. It predicts that a volume regime change is likely. Which way SOL breaks after a Staging signal is a separate judgment.
-- It does not see the intermediate step (stablecoin → SOL swaps, CEX SOL withdrawals) or pump.fun launch rate yet. Those need a Helius key and are the natural next additions.
+- It does not predict direction. It predicts that a volume regime change is likely. Which way SOL moves during a Live regime is a separate judgment.
+- It confirms a regime rather than leading it. The leading layer (graduation rate, new-wallet share, stable→SOL rotation) needs the Helius key stored as the `HELIUS_API_KEY` secret and is the next addition.
