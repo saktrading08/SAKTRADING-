@@ -1,24 +1,17 @@
 {
- "updated": "2026-10-13T01:01:15.537Z",
+ "updated": "2026-10-13T01:16:51.994Z",
  "current": {
-  "ts": "2026-10-13T01:01:15.537Z",
-  "date": "2026-10-13",
-  "state": "Quiet",
-  "price": 105.64,
+  "ts": "2026-10-13T01:16:51.994Z",
+  "date": "2026-10-12",
+  "state": "Neutral",
+  "price": 111.25,
   "stable": 16286444052,
-  "inflow7": -701111568,
-  "inflowZ": -1.337,
-  "rvol": 0.4536,
-  "volPct": 24.9,
-  "vol": 172070426,
-  "volRatio": 0.229,
-  "streak": 0
+  "inflow7": -537835799,
+  "inflowZ": -1.075,
+  "rvol": 0.4004,
+  "volPct": 18.9,
+  "vol": 581454412,
+  "volRatio": null
  },
- "backtest": {
-  "episodeCount": 9,
-  "episodeHitRate": 0.3333333333333333,
-  "baseRate": 0.23366336633663368,
-  "lift": 0.6113801452784503,
-  "medianLead": 1
- }
+ "backtest": {}
 }

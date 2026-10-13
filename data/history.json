@@ -12,5 +12,18 @@
   "vol": 172070426,
   "volRatio": 0.229,
   "streak": 0
+ },
+ {
+  "ts": "2026-10-13T01:16:51.994Z",
+  "date": "2026-10-12",
+  "state": "Neutral",
+  "price": 111.25,
+  "stable": 16286444052,
+  "inflow7": -537835799,
+  "inflowZ": -1.075,
+  "rvol": 0.4004,
+  "volPct": 18.9,
+  "vol": 581454412,
+  "volRatio": null
  }
 ]
