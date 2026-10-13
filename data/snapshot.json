@@ -1,17 +1,46 @@
 {
- "updated": "2026-10-13T01:16:51.994Z",
+ "updated": "2026-10-13T01:26:15.970Z",
  "current": {
-  "ts": "2026-10-13T01:16:51.994Z",
+  "ts": "2026-10-13T01:26:15.970Z",
   "date": "2026-10-12",
   "state": "Neutral",
+  "regime": 0.82,
+  "meme7": 445508162,
+  "meme30": 543329924,
   "price": 111.25,
+  "aboveMA": true,
+  "ret30": 0.087,
+  "ret7": -0.084,
   "stable": 16286444052,
+  "stable30": -0.015,
+  "surge": false,
   "inflow7": -537835799,
   "inflowZ": -1.075,
   "rvol": 0.4004,
-  "volPct": 18.9,
-  "vol": 581454412,
-  "volRatio": null
+  "volPct": 18.9
  },
- "backtest": {}
+ "evidence": {
+  "base": {
+   "nextMedian": 0.98560752285878,
+   "pHot": 0.19953325554259044,
+   "pExpand": 0.2823803967327888
+  },
+  "live": {
+   "days": 130,
+   "episodes": 9,
+   "nextMedian": 2.1080881293421494,
+   "pStay": 0.8461538461538461,
+   "medianPeakLag": 19
+  },
+  "dead": {
+   "days": 98,
+   "pExpand": 0
+  },
+  "trend": {
+   "aboveN": 416,
+   "above": 0.4014423076923077,
+   "belowN": 441,
+   "below": 0.17006802721088435
+  }
+ }
 }
