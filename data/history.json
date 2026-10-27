@@ -278,5 +278,24 @@
   "inflowZ": 0.071,
   "rvol": 0.3705,
   "volPct": 11.5
+ },
+ {
+  "ts": "2026-10-27T01:02:43.165Z",
+  "date": "2026-10-26",
+  "state": "Neutral",
+  "regime": 0.746,
+  "meme7": 375869672,
+  "meme30": 504160283,
+  "price": 101.24,
+  "aboveMA": false,
+  "ret30": -0.171,
+  "ret7": -0.027,
+  "stable": 15788758141,
+  "stable30": -0.057,
+  "surge": false,
+  "inflow7": 20434344,
+  "inflowZ": 0.097,
+  "rvol": 0.3597,
+  "volPct": 9.6
  }
 ]
